@@ -33,15 +33,38 @@ JsonArray points;
 
 double current_position = 0;
 
+bool g_laser_new = false;
+bool g_laser_loop = false;
+bool g_laser_final = false;
+bool g_laser_calibrate = false;
+String g_laser_array_string;
+JsonArray g_laser_array;
 
 class MyCallbacks: public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) {
-      //pCharacteristic->setValue("Hello World");
-      std::string value = pCharacteristic->getValue();
-      DynamicJsonDocument doc(1024);
-      deserializeJson(doc, value);
-      points = doc.as<JsonArray>();
-    }
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    std::string value = pCharacteristic->getValue();
+    
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, value);
+
+    g_laser_loop = doc["loop"];
+    g_laser_final = doc["final"];
+    g_laser_array_string = doc["array"].as<String>();
+    g_laser_calibrate = doc["calibrate"];
+    
+    g_laser_array = doc["array"].as<JsonArray>();
+
+    g_laser_new = true;
+
+    points = g_laser_array;
+
+    Serial.println("-------------------");
+    Serial.println(g_laser_loop);
+    Serial.println(g_laser_final);
+    Serial.println(g_laser_calibrate);
+    Serial.println(g_laser_array_string);
+    Serial.println("===================");
+  }
 };
 
 void setup() {
@@ -62,28 +85,56 @@ void setup() {
 }
 
 void loop() {
-        for(JsonVariant v : points) {
-        JsonObject obj = v.as<JsonObject>();
-        String str_id = (obj["id"]);
-        String str_x = (obj["x"]);
-        String str_y = (obj["y"]);
-        String str_rpm = (obj["rpm"]);
-//        Serial.print(str_id);
-//        Serial.print(" | ");
-//        Serial.print(get_steps(str_x.toDouble()));
-//        Serial.print(" | ");
-//        Serial.print(get_steps(str_y.toDouble()));
-//        Serial.print(" | ");
-//        Serial.print(str_rpm);
-//        Serial.println("");
-        int x = get_steps(str_x.toDouble());
-        Serial.println(str_x);
-        Serial.println(x);
-        go_to_position(x);
-        delay(1000);
-      }
-      //delay(5000);
-  // put your main code here, to run repeatedly:
+  loop_laser_array();
+  delay(100);
+//  for(JsonVariant v : points) {
+//    JsonObject obj = v.as<JsonObject>();
+//    Serial.println(v.as<String>());
+//        String str_id = (obj["id"]);
+//        String str_x = (obj["x"]);
+//        String str_y = (obj["y"]);
+//        String str_rpm = (obj["rpm"]);
+////        Serial.print(str_id);
+////        Serial.print(" | ");
+////        Serial.print(get_steps(str_x.toDouble()));
+////        Serial.print(" | ");
+////        Serial.print(get_steps(str_y.toDouble()));
+////        Serial.print(" | ");
+////        Serial.print(str_rpm);
+////        Serial.println("");
+//        int x = get_steps(str_x.toDouble());
+//        Serial.println(str_x);
+//        Serial.println(x);
+//        go_to_position(x);
+//        delay(1000);
+//      }
+//      delay(1000);
+//  // put your main code here, to run repeatedly:
+}
+
+void loop_laser_array() {
+  if(g_laser_new) {
+    g_laser_new = false;
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, g_laser_array_string);
+    JsonArray laser_array = doc.as<JsonArray>();
+    h_loop_laser_array(laser_array);
+    while(g_laser_loop && !g_laser_new) {
+      h_loop_laser_array(laser_array);
+    }
+  }
+}
+
+void h_loop_laser_array(JsonArray laser_array) {
+  for(JsonVariant v : laser_array) {
+    JsonObject obj = v.as<JsonObject>();
+    String str_x = (obj["x"]);
+    String str_y = (obj["y"]);
+    String str_rpm = (obj["rpm"]);
+    int x = get_steps(str_x.toDouble());
+    go_to_position(x);
+    delay(1000);
+  }
 }
 
 int get_steps(double deg) {
@@ -94,8 +145,11 @@ int get_steps(double deg) {
 }
 
 void go_to_position(int new_position){
-  int step_number = new_position - current_position;
-  current_position = new_position;
+  int step_number = new_position;
+  if(!g_laser_calibrate) {
+    step_number = step_number - current_position;
+    current_position = new_position;
+  }
   stepper_a.step(-step_number);
   Serial.println(step_number);
 }

@@ -35,13 +35,22 @@ function InputPoints(props) {
 
     const encoder = new TextEncoder();
     const handleOnUpload = async (result) => {
+        const tmpp = {loop: checked, final: true, array: pointParams}
+        console.log(JSON.stringify(tmpp))
         const res = await props.characteristic.writeValue(
-            encoder.encode(JSON.stringify(pointParams))
+            encoder.encode(JSON.stringify(tmpp))
         )
+        console.log(res)
+    }
+
+    const [checked, updateChecked] = useState(false)
+    const handleOnLoop = (result) => {
+        updateChecked(result.target.checked)
     }
 
     return (
         <div>
+            <input type="checkbox" onChange = {handleOnLoop}/>
             <DragDropContext onDragEnd={handleOnDragEnd}>
                 <Droppable droppableId="MyList">
                     {(provided) => (
