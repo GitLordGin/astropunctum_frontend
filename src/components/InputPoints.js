@@ -2,7 +2,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import React, {useState} from "react";
 import InputPointParams from "./InputPointParams";
 
-function MyList(props) {
+function InputPoints(props) {
     const [pointParams, updatePointParams] = useState([{id:0,x:0,y:0,rpm:0}])
 
     function handleOnDragEnd(result) {
@@ -12,6 +12,7 @@ function MyList(props) {
         items.splice(result.destination.index, 0, reorderItem);
         updatePointParams(items);
     }
+
     function handleOnAdd(result) {
         const id = Math.max(...pointParams.map((x) => x.id)) + 1;
         const element = pointParams.slice(-1)[0]
@@ -32,8 +33,11 @@ function MyList(props) {
         updatePointParams(newArr);
     }
 
-    const handleOnUpload = (e, id) => {
-        console.log(pointParams);
+    const encoder = new TextEncoder();
+    const handleOnUpload = async (result) => {
+        const res = await props.characteristic.writeValue(
+            encoder.encode(JSON.stringify(pointParams))
+        )
     }
 
     return (
@@ -68,4 +72,4 @@ function MyList(props) {
     );
 }
 
-export default MyList;
+export default InputPoints;

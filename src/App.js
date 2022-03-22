@@ -1,11 +1,14 @@
 import './App.css';
-import MyList from './components/MyList';
-import DumyData from './DumyData';
+import InputPoints from './components/InputPoints';
+import React, {useState} from "react";
+import ConnectDevice from './components/ConnectDevice';
 
 function App() {
+  const [characteristic, setCharacteristic] = useState(null);
   return (
     <div>
-      <MyList data={DumyData}/>
+      <ConnectDevice characteristic={characteristic} setCharacteristic={setCharacteristic}/>
+      <InputPoints characteristic={characteristic}/>
     </div>
   );
 }
