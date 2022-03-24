@@ -24,8 +24,6 @@
 #define IN3 21
 #define IN4 19
 
-#define PIN_BUTTON 25
-
 const int steps_per_revolution = 2048;
 Stepper stepper_a(steps_per_revolution, IN1, IN3, IN2, IN4);
 
@@ -86,30 +84,6 @@ void setup() {
 
 void loop() {
   loop_laser_array();
-  delay(100);
-//  for(JsonVariant v : points) {
-//    JsonObject obj = v.as<JsonObject>();
-//    Serial.println(v.as<String>());
-//        String str_id = (obj["id"]);
-//        String str_x = (obj["x"]);
-//        String str_y = (obj["y"]);
-//        String str_rpm = (obj["rpm"]);
-////        Serial.print(str_id);
-////        Serial.print(" | ");
-////        Serial.print(get_steps(str_x.toDouble()));
-////        Serial.print(" | ");
-////        Serial.print(get_steps(str_y.toDouble()));
-////        Serial.print(" | ");
-////        Serial.print(str_rpm);
-////        Serial.println("");
-//        int x = get_steps(str_x.toDouble());
-//        Serial.println(str_x);
-//        Serial.println(x);
-//        go_to_position(x);
-//        delay(1000);
-//      }
-//      delay(1000);
-//  // put your main code here, to run repeatedly:
 }
 
 void loop_laser_array() {
@@ -133,7 +107,7 @@ void h_loop_laser_array(JsonArray laser_array) {
     String str_rpm = (obj["rpm"]);
     int x = get_steps(str_x.toDouble());
     go_to_position(x);
-    delay(1000);
+    delay(333);
   }
 }
 
