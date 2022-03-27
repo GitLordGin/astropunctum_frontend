@@ -12,7 +12,7 @@
 
 #include <ArduinoJson.h>
 
-#include <AccelStepper.h>
+#include <Stepper.h>
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -30,11 +30,9 @@
 #define IN7 33
 #define IN8 32
 
-#define FULLSTEP 4
-
 const int steps_per_revolution = 2048;
-AccelStepper stepper_a(FULLSTEP, IN1, IN3, IN2, IN4);
-AccelStepper stepper_b(FULLSTEP, IN5, IN7, IN6, IN8);
+Stepper stepper_a(steps_per_revolution, IN1, IN3, IN2, IN4);
+Stepper stepper_b(steps_per_revolution, IN5, IN7, IN6, IN8);
 
 JsonArray points;
 
@@ -89,18 +87,8 @@ void setup() {
   pService->start();
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->start();
-  stepper_a.setMaxSpeed(400.0);
-  stepper_a.setAcceleration(400.0);
-  stepper_a.setSpeed(400);
-  stepper_a.moveTo(0);
-
-  stepper_b.setMaxSpeed(400.0);
-  stepper_b.setAcceleration(400.0);
-  stepper_b.setSpeed(400);
-  stepper_b.moveTo(0);
-  
-//  stepper_a.setSpeed(5);
-//  stepper_b.setSpeed(5);
+  stepper_a.setSpeed(5);
+  stepper_b.setSpeed(5);
 }
 
 void loop() {
@@ -126,41 +114,10 @@ void h_loop_laser_array(JsonArray laser_array) {
     String str_x = (obj["x"]);
     String str_y = (obj["y"]);
     String str_rpm = (obj["rpm"]);
-    
-    double rpm = str_rpm.toDouble();
-    rpm = rpm * 360 / 60;
-    rpm = get_steps(rpm);
     int x = get_steps(str_x.toDouble());
     int y = get_steps(str_y.toDouble());
-    int rel_x = (int)abs(x - stepper_a.currentPosition());
-    int rel_y = (int)abs(y - stepper_b.currentPosition());
-
-    long num_x = rel_x * rel_x;
-    long num_y = rel_y * rel_y;
-    long num = num_x + num_y;
-
-    double t = sqrt(num)/rpm;
-    
-    int rpm_x = (int)(rel_x/t);
-    int rpm_y = (int)(rel_y/t);
-
-    Serial.println(rpm_x);
-    Serial.println(rpm_y);
-//
-//    rpm_x = 500;
-//    rpm_y = 500;
-
-    stepper_a.setMaxSpeed(rpm_x);
-    stepper_a.setAcceleration(rpm_x);
-    stepper_a.setSpeed(rpm_x);
-
-    stepper_b.setMaxSpeed(rpm_y);
-    stepper_b.setAcceleration(rpm_y);
-    stepper_b.setSpeed(rpm_y);
-
-    
     go_to_position(x, y);
-    delay(0);
+    delay(333);
   }
 }
 
@@ -180,30 +137,8 @@ void go_to_position(int new_position_x, int new_position_y){
     step_number_y = step_number_y - current_position_y;
     current_position_y = new_position_y;
   }
-  stepper_a.moveTo(new_position_x);
-  stepper_b.moveTo(new_position_y);
-
-  Serial.println(new_position_x);
-  Serial.println(new_position_y);
-  
-
-  bool flag = true;
-  while(flag) {
-    bool a = stepper_a.distanceToGo() == 0;
-    bool b = stepper_b.distanceToGo() == 0;
-    if(!a) {
-      stepper_a.run();
-    }
-    if(!b) {
-      stepper_b.run();
-    }
-    if(a && b) {
-      flag = false;
-    }
-  }
-//  
-//  stepper_a.step(-step_number_x);
-//  stepper_b.step(-step_number_y);
-//  Serial.println(step_number_x);
-//  Serial.println(step_number_y);
+  stepper_a.step(-step_number_x);
+  stepper_b.step(-step_number_y);
+  Serial.println(step_number_x);
+  Serial.println(step_number_y);
 }

@@ -160,7 +160,7 @@ void h_loop_laser_array(JsonArray laser_array) {
 
     
     go_to_position(x, y);
-    delay(0);
+    delay(333);
   }
 }
 

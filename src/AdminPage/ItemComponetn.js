@@ -1,8 +1,8 @@
-function InputPointParam(props) {
+function ItemComponetn(props) {
     return (
-        <div className="ManualInput--Single">
-          <p className="ManualInput--Single--Text">{props.name}:</p>
-          <input className="ManualInput--Single--Number"
+        <div className="ItemComponetn">
+          <div className="ItemComponetn--Text"><p>{props.name}:</p></div>
+          <div className="ItemComponetn--Number"><input
             name={props.name}
             type="number"
             value={props.value}
@@ -10,9 +10,9 @@ function InputPointParam(props) {
             min={props.min}
             max={props.max}
             step="0.01"
-          />
+          /></div>
           {props.show_range ? (
-            <input className="ManualInput--Single--Range"
+            <div className="ItemComponetn--Range"><input
               name={props.name}
               type="range"
               value={props.value}
@@ -20,7 +20,7 @@ function InputPointParam(props) {
               min={props.min}
               max={props.max}
               step="0.01"
-            />
+            /></div>
           ) : (
             <></>
           )}
@@ -28,4 +28,4 @@ function InputPointParam(props) {
       );
 }
 
-export default InputPointParam;
+export default ItemComponetn;

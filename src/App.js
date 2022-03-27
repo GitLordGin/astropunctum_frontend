@@ -1,17 +1,17 @@
 import './App.css';
-import InputPoints from './components/InputPoints';
-import React, {useState} from "react";
-import ConnectDevice from './components/ConnectDevice';
-import AdminView from './components/AdminView';
+import React from "react";
+import MainPage from './MainPage/MainPage';
+import AdminPage from './AdminPage/AdminPage';
+import { Routes, Route } from 'react-router-dom';
 
 function App() {
-  const [characteristic, setCharacteristic] = useState(null);
   return (
-    <div>
-      <AdminView characteristic={characteristic}/>
-      <ConnectDevice characteristic={characteristic} setCharacteristic={setCharacteristic}/>
-      <InputPoints characteristic={characteristic}/>
-    </div>
+    <>
+      <Routes>
+        <Route path='/' element={<MainPage/>} />
+        <Route path='/AdminPage' element={<AdminPage/>} />
+      </Routes>
+    </>
   );
 }
 
