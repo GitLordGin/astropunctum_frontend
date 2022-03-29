@@ -10,11 +10,13 @@
 
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define READ_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define WRITE_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a9"
 const int c_ble_timeout = 30000;
 
 BLEServer* g_ble_p_server;
 BLEService *p_service;
 BLECharacteristic *p_read_characteristic;
+BLECharacteristic *p_write_characteristic;
 unsigned long g_ble_last_callback = 0;
 bool g_ble_connected = false;
 
@@ -41,6 +43,16 @@ bool laser = 0;
 class MyBLEReadCharacteristicCallbacks: public BLECharacteristicCallbacks {
   void onRead(BLECharacteristic *pCharacteristic) {
     Serial.println("Read: ");
+    String str = String("x:" + String(x) + " | y:" + String(y) + " | rpm:" + String(rpm) + " | laser:" + String(laser));
+    pCharacteristic->setValue(str.c_str());
+    g_ble_last_callback = millis();
+  }
+};
+
+class MyBLEWriteCharacteristicCallbacks: public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    Serial.print(String("Write: "));
+    Serial.println(pCharacteristic->getValue().c_str());
     g_ble_last_callback = millis();
   }
 };
@@ -61,6 +73,12 @@ void setup() {
     BLECharacteristic::PROPERTY_READ
   );
   p_read_characteristic->setCallbacks(new MyBLEReadCharacteristicCallbacks());
+  
+  p_write_characteristic = p_service->createCharacteristic(
+    WRITE_CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_WRITE
+  );
+  p_write_characteristic->setCallbacks(new MyBLEWriteCharacteristicCallbacks());
 
   p_service->start();
   
@@ -81,10 +99,8 @@ void f_ble_timeout() {
 }
 
 void f_ble_set_characteristic() {
-  int x = random(100);
-  int y = random(100);
-  int rpm = random(100);
-  bool laser = random(100) % 2 == 0;
-  String str = String("x:" + String(x) + " | y:" + String(y) + " | rpm:" + String(rpm) + " | laser:" + String(laser));
-  p_read_characteristic->setValue(str.c_str());
+  x = random(100);
+  y = random(100);
+  rpm = random(100);
+  laser = random(100) % 2 == 0;
 }
