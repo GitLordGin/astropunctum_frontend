@@ -8,9 +8,13 @@
 #include <BLEServer.h>
 #include <BLEAddress.h>
 
-const int c_ble_timeout = 10000;
+#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define READ_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+const int c_ble_timeout = 30000;
 
 BLEServer* g_ble_p_server;
+BLEService *p_service;
+BLECharacteristic *p_read_characteristic;
 unsigned long g_ble_last_callback = 0;
 bool g_ble_connected = false;
 
@@ -30,6 +34,17 @@ class MyBLEServerCallbacks: public BLEServerCallbacks {
   }
 };
 
+int x = 0;
+int y = 0;
+int rpm = 0;
+bool laser = 0;
+class MyBLEReadCharacteristicCallbacks: public BLECharacteristicCallbacks {
+  void onRead(BLECharacteristic *pCharacteristic) {
+    Serial.println("Read: ");
+    g_ble_last_callback = millis();
+  }
+};
+
 void setup() {
   Serial.begin(115200);
   while(!Serial);
@@ -38,6 +53,16 @@ void setup() {
   
   g_ble_p_server = BLEDevice::createServer();
   g_ble_p_server->setCallbacks(new MyBLEServerCallbacks());
+
+  p_service = g_ble_p_server->createService(SERVICE_UUID);
+
+  p_read_characteristic = p_service->createCharacteristic(
+    READ_CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_READ
+  );
+  p_read_characteristic->setCallbacks(new MyBLEReadCharacteristicCallbacks());
+
+  p_service->start();
   
   BLEDevice::startAdvertising();
 }
@@ -45,6 +70,7 @@ void setup() {
 void loop() {
   if(g_ble_connected) {
     f_ble_timeout();
+    f_ble_set_characteristic();
   }
 }
 
@@ -52,4 +78,13 @@ void f_ble_timeout() {
   if(millis() - g_ble_last_callback > c_ble_timeout) {
     g_ble_p_server->disconnect(g_ble_p_server->getConnId());
   }
+}
+
+void f_ble_set_characteristic() {
+  int x = random(100);
+  int y = random(100);
+  int rpm = random(100);
+  bool laser = random(100) % 2 == 0;
+  String str = String("x:" + String(x) + " | y:" + String(y) + " | rpm:" + String(rpm) + " | laser:" + String(laser));
+  p_read_characteristic->setValue(str.c_str());
 }
